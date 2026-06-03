@@ -10,6 +10,13 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.0.3] - 2026-06-04
+
+### Fixed
+- Removed incorrect GitHub Packages install instructions from README and docs
+
+---
+
 ## [1.0.2] - 2026-06-04
 
 ### Added
