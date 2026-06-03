@@ -1,0 +1,92 @@
+name: Auto Release from Changelog
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'CHANGELOG.md'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Parse the top-most released version (skip [Unreleased]) ──────────
+      - name: Extract version from CHANGELOG
+        id: version
+        run: |
+          VERSION=$(grep -m1 '^## \[[0-9]' CHANGELOG.md \
+            | sed 's/## \[\([^]]*\)\].*/\1/')
+          if [ -z "$VERSION" ]; then
+            echo "No released version found in CHANGELOG.md, skipping."
+            exit 0
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Detected version: $VERSION"
+
+      # ── Skip if this version is already tagged ────────────────────────────
+      - name: Check if tag exists
+        id: tag_check
+        run: |
+          TAG="v${{ steps.version.outputs.version }}"
+          if git tag -l "$TAG" | grep -q .; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Tag $TAG already exists — nothing to do."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── Sync version in pyproject.toml and __init__.py ───────────────────
+      - name: Update version in source files
+        if: steps.tag_check.outputs.exists == 'false'
+        run: |
+          V="${{ steps.version.outputs.version }}"
+          sed -i "s/^version = .*/version = \"$V\"/" pyproject.toml
+          sed -i "s/__version__ = .*/__version__ = \"$V\"/" safelicensing/__init__.py
+
+      - name: Commit version bump
+        if: steps.tag_check.outputs.exists == 'false'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pyproject.toml safelicensing/__init__.py
+          git diff --staged --quiet \
+            || git commit -m "chore: bump version to ${{ steps.version.outputs.version }} [skip ci]"
+          git push
+
+      # ── Extract release notes for this version from CHANGELOG ────────────
+      - name: Extract release notes
+        if: steps.tag_check.outputs.exists == 'false'
+        id: notes
+        run: |
+          NOTES=$(awk '
+            /^## \[[0-9]/{
+              count++
+              if (count == 2) exit
+              next
+            }
+            count == 1 { print }
+          ' CHANGELOG.md | sed '/^[[:space:]]*---[[:space:]]*$/d' | sed '/^$/N;/^\n$/d')
+          {
+            echo "notes<<EOF"
+            printf '%s\n' "$NOTES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      # ── Create tag + GitHub Release (triggers publish.yml) ───────────────
+      - name: Create GitHub Release
+        if: steps.tag_check.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          body: ${{ steps.notes.outputs.notes }}
+          draft: false
+          prerelease: false
