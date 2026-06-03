@@ -1,0 +1,82 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "safelicensing"
+version = "1.0.0"
+description = "License plate detection and chaotic-map encryption for images and videos"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Md. Fahim Bin Amin", email = "fahimbinamin@gmail.com" },
+    { name = "Israt Jahan Khan" },
+]
+keywords = [
+    "license-plate",
+    "number-plate",
+    "encryption",
+    "chaotic-map",
+    "yolo",
+    "yolov8",
+    "computer-vision",
+    "privacy",
+    "anonymisation",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Image Processing",
+    "Topic :: Security :: Cryptography",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "streamlit>=1.28.0",
+    "opencv-python-headless>=4.8.0",
+    "ultralytics>=8.0.0",
+    "moviepy>=1.0.0,<2.0.0",
+    "imageio-ffmpeg",
+    "numpy>=1.24.0",
+    "pillow>=10.0.0",
+    "requests>=2.31.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/FahimFBA/SafeLicensing"
+"Bug Tracker" = "https://github.com/FahimFBA/SafeLicensing/issues"
+Paper = "https://ieeexplore.ieee.org/abstract/document/10534375/"
+
+[project.scripts]
+safelicensing = "safelicensing.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["safelicensing*"]
+
+[tool.setuptools.package-data]
+safelicensing = ["*.pt"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: tests that require disk I/O, model weights, or real video files",
+]
+
+[tool.coverage.run]
+source = ["safelicensing"]
+omit = ["safelicensing/app.py", "safelicensing/cli.py"]
