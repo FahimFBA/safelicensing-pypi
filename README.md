@@ -1,5 +1,11 @@
 # SafeLicensing
 
+[![PyPI version](https://img.shields.io/pypi/v/safelicensing?color=0ea5e9&label=PyPI)](https://pypi.org/project/safelicensing/)
+[![Python](https://img.shields.io/pypi/pyversions/safelicensing?color=0ea5e9)](https://pypi.org/project/safelicensing/)
+[![License](https://img.shields.io/pypi/l/safelicensing?color=0ea5e9)](LICENSE)
+[![Release](https://img.shields.io/github/actions/workflow/status/FahimFBA/safelicensing-pypi/release.yml?label=release&color=0ea5e9)](https://github.com/FahimFBA/safelicensing-pypi/actions/workflows/release.yml)
+[![Docs](https://img.shields.io/badge/docs-online-0ea5e9)](https://fahimfba.github.io/safelicensing-pypi/)
+
 **License plate detection and chaotic-map encryption for images and videos.**
 
 Detect vehicle license plates with YOLOv8 and encrypt only the sensitive regions using a dual-pass chaotic XOR scheme, leaving the rest of the image or video completely intact.
@@ -7,7 +13,7 @@ Detect vehicle license plates with YOLOv8 and encrypt only the sensitive regions
 Built on the research published at IEEE ECCE 2024:
 > *Vehicle Number Plate Detection and Encryption in Digital Images Using YOLOv8 and Chaotic-Based Encryption Scheme* - [View on IEEE Xplore](https://ieeexplore.ieee.org/abstract/document/10534375/)
 
-**Documentation:** [fahimfba.github.io/safelicensing-pypi](https://fahimfba.github.io/safelicensing-pypi/)
+**Full documentation:** [fahimfba.github.io/safelicensing-pypi](https://fahimfba.github.io/safelicensing-pypi/)
 
 ---
 
@@ -108,8 +114,6 @@ Full docs at [fahimfba.github.io/safelicensing-pypi](https://fahimfba.github.io/
 
 #### `sl.protect_image(image, seed=0.5, model=None, model_path=None) -> ProtectImageResult`
 
-Detect and encrypt all license plates in a PIL image.
-
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `image` | `PIL.Image.Image` | Input image (any colour mode). |
@@ -127,11 +131,7 @@ Detect and encrypt all license plates in a PIL image.
 | `bboxes` | `list[tuple]` | `(x1, y1, x2, y2)` per detected plate. |
 | `elapsed` | `float` | Processing time in seconds. |
 
----
-
 #### `sl.protect_video(video_path, seed=0.5, output_path=None, model=None, model_path=None, progress_callback=None) -> ProtectVideoResult`
-
-Detect and encrypt license plates in every frame of a video.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -151,61 +151,19 @@ Detect and encrypt license plates in every frame of a video.
 | `fps` | `float` | Output frame rate. |
 | `elapsed` | `float` | Processing time in seconds. |
 
----
-
 #### `sl.load_model(weights_path=None) -> YOLO`
 
 Load a YOLOv8 model. Uses the bundled `best.pt` when `weights_path` is `None`.
 
----
-
-### Mid-level
-
-```python
-from safelicensing import detect_license_plates, encrypt_image
-
-annotated, bboxes = detect_license_plates(model, pil_image)
-encrypted_region  = encrypt_image(np_array, seed=0.42)
-```
-
----
-
 ### Low-level (research)
 
 ```python
-from safelicensing.encryption import logistic_map, generate_key, shuffle_pixels
+from safelicensing.encryption import logistic_map, generate_key, shuffle_pixels, encrypt_image
 from safelicensing.detection  import load_model, detect_license_plates
 from safelicensing.video      import process_video, create_video_from_frames
 ```
 
-#### `logistic_map(r, x) -> float`
-Single step of the logistic map: `r * x * (1 - x)`.
-
-#### `generate_key(seed, n) -> np.ndarray`
-Generates a chaotic byte key of length `n` using the logistic map seeded at `seed`.
-
-#### `shuffle_pixels(img_array, seed) -> (np.ndarray, np.ndarray)`
-Shuffles pixels of a `(H, W, C)` uint8 array. Returns `(shuffled, indices)`.
-
-#### `encrypt_image(img_array, seed) -> np.ndarray`
-Full two-layer encryption: XOR -> shuffle -> XOR. Returns encrypted array, same shape.
-
-#### `process_video(video_path, model, key_seed, progress_callback=None)`
-Frame-by-frame detection and encryption. Returns `(frames, fps, (width, height))`.
-
-#### `create_video_from_frames(frames, fps, output_path, audio_path=None) -> str`
-Encodes a list of RGB frames into a video file. Returns absolute output path.
-
----
-
-## Custom model
-
-Bring your own YOLOv8 weights trained for license plate detection:
-
-```python
-model = sl.load_model("path/to/my_model.pt")
-result = sl.protect_image(image, seed=0.5, model=model)
-```
+See the [full low-level API reference](https://fahimfba.github.io/safelicensing-pypi/docs/api/low-level).
 
 ---
 
@@ -221,7 +179,7 @@ The same seed always produces the same encrypted output, making the process dete
 
 ---
 
-## Development setup
+## Development
 
 ```bash
 git clone https://github.com/FahimFBA/safelicensing-pypi.git
@@ -230,15 +188,38 @@ pip install -r requirements-dev.txt
 pip install -e .
 ```
 
-`requirements-dev.txt` includes all runtime dependencies plus `pytest` and `pytest-cov`.
-
-## Running tests
-
 ```bash
-pytest                              # unit tests only (no model or video files needed)
-pytest -m integration               # also run integration tests
-pytest --cov=safelicensing          # with coverage report
+pytest                      # unit tests
+pytest -m integration       # integration tests (requires model + disk)
+pytest --cov=safelicensing  # with coverage
 ```
+
+---
+
+## Releasing a new version
+
+Edit `CHANGELOG.md` and add a new version section at the top:
+
+```markdown
+## [1.0.2] - 2026-06-10
+
+### Added
+- Your change here
+
+### Fixed
+- Bug fix here
+```
+
+Commit and push to `main`. The CI pipeline will automatically:
+
+1. Parse the new version from `CHANGELOG.md`
+2. Update `pyproject.toml` and `safelicensing/__init__.py`
+3. Build the distribution
+4. Publish to [PyPI](https://pypi.org/project/safelicensing/)
+5. Publish to GitHub Packages
+6. Create a GitHub Release with changelog notes and `.whl` / `.tar.gz` attached
+
+No manual steps needed beyond editing the changelog.
 
 ---
 
@@ -250,8 +231,6 @@ pytest --cov=safelicensing          # with coverage report
 ---
 
 ## Citation
-
-If you use SafeLicensing in your research, please cite:
 
 ```bibtex
 @inproceedings{amin2024safelicensing,

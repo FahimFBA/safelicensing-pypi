@@ -64,19 +64,35 @@ pip install twine
 twine upload dist/*
 ```
 
-## Publishing via GitHub Actions
+## Releasing a new version
 
-On every new GitHub release (status: published), `.github/workflows/publish.yml`
-automatically:
+Edit `CHANGELOG.md`, add a new version section at the top, then push to `main`:
 
-1. Checks out the repo with `GITHUB_TOKEN`
-2. Builds the package with `python -m build`
-3. Publishes to PyPI using **Trusted Publishing** (no API token needed)
+```markdown
+## [1.0.2] - 2026-06-10
 
-To set up Trusted Publishing on PyPI:
-1. Go to [pypi.org](https://pypi.org) → Manage project → Publishing
-2. Add a new trusted publisher with your GitHub org, repo, and workflow file name
-3. Create a `pypi` environment in your GitHub repo Settings → Environments
+### Added
+- New feature
+
+### Fixed
+- Bug fix
+```
+
+`.github/workflows/release.yml` runs automatically and:
+
+1. Parses the new version from `CHANGELOG.md`
+2. Skips if the tag already exists (safe to re-push)
+3. Updates `pyproject.toml` and `safelicensing/__init__.py`
+4. Commits the version bump with `[skip ci]`
+5. Builds the distribution
+6. Publishes to PyPI via Trusted Publishing (no API token needed)
+7. Publishes to GitHub Packages
+8. Creates a GitHub Release with changelog notes and `.whl` / `.tar.gz` attached
+
+To enable Trusted Publishing on PyPI (one-time setup):
+1. Go to pypi.org, manage the `safelicensing` project, open Publishing
+2. Add trusted publisher: owner `FahimFBA`, repo `safelicensing-pypi`, workflow `release.yml`
+3. Create a `pypi` environment in GitHub repo Settings, Environments
 
 ## Building the docs site
 

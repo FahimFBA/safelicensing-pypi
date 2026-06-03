@@ -1,4 +1,7 @@
-name: Auto Release from Changelog
+name: Release and Publish
+
+# Triggers when CHANGELOG.md is updated on main.
+# Add a new ## [x.y.z] section, commit, push — everything else is automatic.
 
 on:
   push:
@@ -7,10 +10,13 @@ on:
       - 'CHANGELOG.md'
 
 jobs:
-  release:
+  release-and-publish:
     runs-on: ubuntu-latest
+    environment: pypi
     permissions:
-      contents: write
+      contents: write    # create tags, releases, commit version bump
+      id-token: write    # PyPI Trusted Publishing (OIDC)
+      packages: write    # GitHub Packages
 
     steps:
       - uses: actions/checkout@v4
@@ -18,41 +24,40 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # ── Parse the top-most released version (skip [Unreleased]) ──────────
+      # ── Parse the top-most released version (skips [Unreleased]) ──────────
       - name: Extract version from CHANGELOG
         id: version
         run: |
           VERSION=$(grep -m1 '^## \[[0-9]' CHANGELOG.md \
             | sed 's/## \[\([^]]*\)\].*/\1/')
           if [ -z "$VERSION" ]; then
-            echo "No released version found in CHANGELOG.md, skipping."
+            echo "No released version found — nothing to do."
             exit 0
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Detected version: $VERSION"
 
-      # ── Skip if this version is already tagged ────────────────────────────
-      - name: Check if tag exists
+      # ── Skip if this version was already released ──────────────────────────
+      - name: Check if tag already exists
         id: tag_check
         run: |
-          TAG="v${{ steps.version.outputs.version }}"
-          if git tag -l "$TAG" | grep -q .; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-            echo "Tag $TAG already exists — nothing to do."
+          if git tag -l "v${{ steps.version.outputs.version }}" | grep -q .; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "v${{ steps.version.outputs.version }} already tagged — skipping."
           else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # ── Sync version in pyproject.toml and __init__.py ───────────────────
+      # ── Sync version string in pyproject.toml and __init__.py ─────────────
       - name: Update version in source files
-        if: steps.tag_check.outputs.exists == 'false'
+        if: steps.tag_check.outputs.skip == 'false'
         run: |
           V="${{ steps.version.outputs.version }}"
           sed -i "s/^version = .*/version = \"$V\"/" pyproject.toml
           sed -i "s/__version__ = .*/__version__ = \"$V\"/" safelicensing/__init__.py
 
-      - name: Commit version bump
-        if: steps.tag_check.outputs.exists == 'false'
+      - name: Commit and push version bump
+        if: steps.tag_check.outputs.skip == 'false'
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -61,9 +66,39 @@ jobs:
             || git commit -m "chore: bump version to ${{ steps.version.outputs.version }} [skip ci]"
           git push
 
-      # ── Extract release notes for this version from CHANGELOG ────────────
+      # ── Build the distribution ─────────────────────────────────────────────
+      - uses: actions/setup-python@v5
+        if: steps.tag_check.outputs.skip == 'false'
+        with:
+          python-version: "3.11"
+
+      - name: Build package
+        if: steps.tag_check.outputs.skip == 'false'
+        run: |
+          pip install build
+          python -m build
+
+      # ── Publish to PyPI (Trusted Publishing — no API token needed) ─────────
+      - name: Publish to PyPI
+        if: steps.tag_check.outputs.skip == 'false'
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+      # ── Publish to GitHub Packages ─────────────────────────────────────────
+      - name: Publish to GitHub Packages
+        if: steps.tag_check.outputs.skip == 'false'
+        run: |
+          pip install twine
+          twine upload \
+            --repository-url https://upload.pypi.pkg.github.com/FahimFBA/ \
+            --skip-existing \
+            dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Extract release notes for this version ─────────────────────────────
       - name: Extract release notes
-        if: steps.tag_check.outputs.exists == 'false'
+        if: steps.tag_check.outputs.skip == 'false'
         id: notes
         run: |
           NOTES=$(awk '
@@ -80,13 +115,14 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      # ── Create tag + GitHub Release (triggers publish.yml) ───────────────
+      # ── Create GitHub Release and attach dist artifacts ────────────────────
       - name: Create GitHub Release
-        if: steps.tag_check.outputs.exists == 'false'
+        if: steps.tag_check.outputs.skip == 'false'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: v${{ steps.version.outputs.version }}
           body: ${{ steps.notes.outputs.notes }}
+          files: dist/*
           draft: false
           prerelease: false
