@@ -28,6 +28,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 - Navbar hide-on-scroll removed (was hiding navbar on mobile screen resize)
+- Duplicate PyPI upload gracefully skipped with `skip-existing: true`
 
 ---
 
