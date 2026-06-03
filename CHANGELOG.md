@@ -10,6 +10,26 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.0.2] - 2026-06-04
+
+### Added
+- Docusaurus documentation site with full API reference, quick start, encryption details, and citation page
+- Custom license-plate-and-lock SVG logo and favicon for the docs site
+- GitHub Packages publishing support (`pip install safelicensing --index-url https://pypi.pkg.github.com/FahimFBA/`)
+- `.whl` and `.tar.gz` artifacts automatically attached to every GitHub Release
+- Changelog-driven release workflow: updating `CHANGELOG.md` and pushing to `main` now triggers the full release pipeline automatically
+- Shields.io badges in README (PyPI version, Python, license, CI status, docs)
+
+### Changed
+- Release workflow consolidated from `publish.yml` into single `release.yml` triggered on `CHANGELOG.md` push
+- `pyproject.toml` and `__init__.py` version now auto-synced by CI from `CHANGELOG.md`
+- README updated with docs site link, GitHub Packages install instructions, and release guide
+
+### Fixed
+- Navbar hide-on-scroll removed (was hiding navbar on mobile screen resize)
+
+---
+
 ## [1.0.1] - 2026-05-15
 
 ### Added
