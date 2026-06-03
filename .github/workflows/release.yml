@@ -41,6 +41,7 @@ jobs:
       - name: Check if tag already exists
         id: tag_check
         run: |
+          git fetch --tags
           if git tag -l "v${{ steps.version.outputs.version }}" | grep -q .; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "v${{ steps.version.outputs.version }} already tagged — skipping."
@@ -92,6 +93,8 @@ jobs:
       - name: Publish to PyPI
         if: steps.tag_check.outputs.skip == 'false'
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
 
       # ── Publish to GitHub Packages ─────────────────────────────────────────
       - name: Publish to GitHub Packages
