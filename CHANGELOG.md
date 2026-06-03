@@ -15,7 +15,6 @@ Versions follow [Semantic Versioning](https://semver.org/).
 ### Added
 - Docusaurus documentation site with full API reference, quick start, encryption details, and citation page
 - Custom license-plate-and-lock SVG logo and favicon for the docs site
-- GitHub Packages publishing support (`pip install safelicensing --index-url https://pypi.pkg.github.com/FahimFBA/`)
 - `.whl` and `.tar.gz` artifacts automatically attached to every GitHub Release
 - Changelog-driven release workflow: updating `CHANGELOG.md` and pushing to `main` now triggers the full release pipeline automatically
 - Shields.io badges in README (PyPI version, Python, license, CI status, docs)

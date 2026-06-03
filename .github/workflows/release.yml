@@ -16,7 +16,6 @@ jobs:
     permissions:
       contents: write    # create tags, releases, commit version bump
       id-token: write    # PyPI Trusted Publishing (OIDC)
-      packages: write    # GitHub Packages
 
     steps:
       - uses: actions/checkout@v4
@@ -95,18 +94,6 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
-
-      # ── Publish to GitHub Packages ─────────────────────────────────────────
-      - name: Publish to GitHub Packages
-        if: steps.tag_check.outputs.skip == 'false'
-        run: |
-          pip install twine
-          twine upload \
-            --repository-url https://upload.pypi.pkg.github.com/FahimFBA/ \
-            dist/* || true
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
 
       # ── Extract release notes for this version ─────────────────────────────
       - name: Extract release notes

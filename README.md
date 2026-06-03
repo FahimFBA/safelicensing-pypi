@@ -35,13 +35,6 @@ Built on the research published at IEEE ECCE 2024:
 pip install safelicensing
 ```
 
-### From GitHub Packages
-
-```bash
-pip install safelicensing \
-  --index-url https://pypi.pkg.github.com/FahimFBA/
-```
-
 ### From source
 
 ```bash
@@ -216,8 +209,7 @@ Commit and push to `main`. The CI pipeline will automatically:
 2. Update `pyproject.toml` and `safelicensing/__init__.py`
 3. Build the distribution
 4. Publish to [PyPI](https://pypi.org/project/safelicensing/)
-5. Publish to GitHub Packages
-6. Create a GitHub Release with changelog notes and `.whl` / `.tar.gz` attached
+5. Create a GitHub Release with changelog notes and `.whl` / `.tar.gz` attached
 
 No manual steps needed beyond editing the changelog.
 
