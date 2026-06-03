@@ -19,6 +19,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - `.whl` and `.tar.gz` artifacts automatically attached to every GitHub Release
 - Changelog-driven release workflow: updating `CHANGELOG.md` and pushing to `main` now triggers the full release pipeline automatically
 - Shields.io badges in README (PyPI version, Python, license, CI status, docs)
+- Non-fast-forward push fix in release workflow using `git pull --rebase` before push
 
 ### Changed
 - Release workflow consolidated from `publish.yml` into single `release.yml` triggered on `CHANGELOG.md` push
