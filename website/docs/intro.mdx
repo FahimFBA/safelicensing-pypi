@@ -9,26 +9,26 @@ slug: /intro
 **License plate detection and chaotic-map encryption for images and videos.**
 
 SafeLicensing detects vehicle license plates using a bundled YOLOv8 model and encrypts only
-the sensitive regions using a dual-pass chaotic XOR scheme — leaving the rest of the image
+the sensitive regions using a dual-pass chaotic XOR scheme, leaving the rest of the image
 or video completely intact.
 
 ## How it works
 
 ```
 Input image / video frame
-        │
-        ▼
-  YOLOv8 detection  →  bounding boxes around every license plate
-        │
-        ▼
-  Chaotic XOR       →  each plate region encrypted in-place
-        │
-        ▼
-  Output            →  plates unreadable, everything else untouched
+        |
+        v
+  YOLOv8 detection  ->  bounding boxes around every license plate
+        |
+        v
+  Chaotic XOR       ->  each plate region encrypted in-place
+        |
+        v
+  Output            ->  plates unreadable, everything else untouched
 ```
 
-1. **Detect** — a fine-tuned YOLOv8 model locates every license plate
-2. **Encrypt** — each detected region is scrambled with a logistic-map dual-pass XOR cipher
+1. **Detect**: a fine-tuned YOLOv8 model locates every license plate
+2. **Encrypt**: each detected region is scrambled with a logistic-map dual-pass XOR cipher
 
 The same seed always produces the same output, making the process deterministic and auditable.
 
@@ -37,7 +37,7 @@ The same seed always produces the same output, making the process deterministic 
 | Capability | Detail |
 |---|---|
 | One-call API | `protect_image()` and `protect_video()` end-to-end |
-| Bundled model | 6 MB `best.pt` ships with the package — no download |
+| Bundled model | 6 MB `best.pt` ships with the package, no download needed |
 | Video support | Frame-by-frame with original audio preservation |
 | Streamlit UI | Browser interface launched via `safelicensing` command |
 | Research API | `logistic_map`, `generate_key`, `shuffle_pixels` exposed |
@@ -45,10 +45,10 @@ The same seed always produces the same output, making the process deterministic 
 
 ## When to use SafeLicensing
 
-- **Privacy-preserving datasets** — anonymise vehicle footage before sharing
-- **Regulatory compliance** — GDPR/CCPA footage redaction pipelines
-- **Encryption research** — study chaotic-map schemes on real-world imagery
-- **Surveillance footage** — encrypt plates before storage or sharing
+- **Privacy-preserving datasets**: anonymise vehicle footage before sharing
+- **Regulatory compliance**: GDPR/CCPA footage redaction pipelines
+- **Encryption research**: study chaotic-map schemes on real-world imagery
+- **Surveillance footage**: encrypt plates before storage or sharing
 
 ## Research background
 
@@ -58,8 +58,8 @@ SafeLicensing implements the scheme published at **IEEE ECCE 2024**:
 > and Chaotic-Based Encryption Scheme*
 > Md. Fahim Bin Amin & Israt Jahan Khan, IEEE 2024
 >
-> [View on IEEE Xplore →](https://ieeexplore.ieee.org/abstract/document/10534375/)
+> [View on IEEE Xplore](https://ieeexplore.ieee.org/abstract/document/10534375/)
 
 ---
 
-**Ready to get started?** Head to [Installation →](/docs/installation)
+**Ready to get started?** Head to [Installation](/docs/installation)

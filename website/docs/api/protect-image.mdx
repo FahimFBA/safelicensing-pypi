@@ -27,7 +27,7 @@ safelicensing.protect_image(
 | `model` | YOLO instance | `None` | Pre-loaded YOLO model. Loads bundled `best.pt` when `None`. |
 | `model_path` | `str` | `None` | Path to custom YOLOv8 `.pt` weights. Ignored when `model` is given. |
 
-## Returns — `ProtectImageResult`
+## Returns: `ProtectImageResult`
 
 | Field | Type | Description |
 |---|---|---|
@@ -106,9 +106,9 @@ except ValueError as e:
 
 ## Notes
 
-- The `original` image is never mutated — all outputs are independent copies.
+- The `original` image is never mutated; all outputs are independent copies.
 - When no plates are detected, `encrypted` is identical to `original` and `bboxes` is empty.
-- The `elapsed` timer starts after model loading — it measures detection + encryption only.
+- The `elapsed` timer starts after model loading. It measures detection + encryption only.
 
 ---
 

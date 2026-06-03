@@ -31,7 +31,7 @@ safelicensing.protect_video(
 | `model_path` | `str` | `None` | Path to custom YOLOv8 `.pt` weights. Ignored when `model` is given. |
 | `progress_callback` | `callable` | `None` | Optional callable receiving a `float` in `[0.0, 1.0]` after each processed frame. |
 
-## Returns — `ProtectVideoResult`
+## Returns: `ProtectVideoResult`
 
 | Field | Type | Description |
 |---|---|---|
@@ -106,7 +106,7 @@ print()   # newline after progress
 
 - The original audio track is preserved in the output video.
 - Output is always encoded as MP4 (H.264 via OpenCV / FFmpeg).
-- Large videos may require significant RAM — all frames are processed in memory.
+- Large videos may require significant RAM; all frames are processed in memory.
 
 ---
 

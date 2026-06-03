@@ -47,7 +47,7 @@ logistic_map(r: float, x: float) -> float
 | `r` | `float` | Growth rate. Use `3.9` for chaotic behaviour. |
 | `x` | `float` | Current value in `(0.0, 1.0)`. |
 
-**Returns** `float` — next value `r * x * (1 - x)`.
+**Returns** `float` - next value `r * x * (1 - x)`.
 
 ```python
 from safelicensing.encryption import logistic_map
@@ -73,7 +73,7 @@ generate_key(seed: float, n: int) -> np.ndarray
 | `seed` | `float` | Initial value in `(0.0, 1.0)` exclusive. |
 | `n` | `int` | Number of bytes to generate. |
 
-**Returns** `np.ndarray` — shape `(n,)`, dtype `uint8`.
+**Returns** `np.ndarray` - shape `(n,)`, dtype `uint8`.
 
 ```python
 from safelicensing.encryption import generate_key
@@ -100,9 +100,9 @@ shuffle_pixels(img_array: np.ndarray, seed: float) -> tuple[np.ndarray, np.ndarr
 | `img_array` | `np.ndarray` | Shape `(H, W, C)`, dtype `uint8`. |
 | `seed` | `float` | Permutation seed in `(0.0, 1.0)`. |
 
-**Returns** `(shuffled, indices)` — both `np.ndarray`.
+**Returns** `(shuffled, indices)`, both `np.ndarray`.
 - `shuffled`: pixels rearranged by the chaotic permutation, shape `(H, W, C)`
-- `indices`: the permutation indices used, shape `(H*W,)` — can be used to reconstruct the original order
+- `indices`: the permutation indices used, shape `(H*W,)`; can be used to reconstruct the original order
 
 ```python
 from safelicensing.encryption import shuffle_pixels
@@ -130,7 +130,7 @@ encrypt_image(img_array: np.ndarray, seed: float) -> np.ndarray
 | `img_array` | `np.ndarray` | Shape `(H, W, 3)`, dtype `uint8`. |
 | `seed` | `float` | Encryption seed in `(0.0, 1.0)` exclusive. |
 
-**Returns** `np.ndarray` — encrypted array, same shape and dtype.
+**Returns** `np.ndarray` - encrypted array, same shape and dtype.
 
 Pipeline: XOR(key1) → shuffle → XOR(key2 from `min(seed*1.1, 0.9999)`)
 
@@ -183,7 +183,7 @@ annotated, bboxes = detect_license_plates(model, image)
 print(f"Detected {len(bboxes)} plates: {bboxes}")
 ```
 
-The input `pil_image` is **never mutated** — `annotated` is always a new copy.
+The input `pil_image` is **never mutated**; `annotated` is always a new copy.
 
 ---
 
@@ -245,7 +245,7 @@ create_video_from_frames(
 | `output_path` | `str` | Destination file path (`.mp4` recommended). |
 | `audio_path` | `str \| None` | Source file to extract audio from. Original video path. |
 
-**Returns** `str` — absolute path to the created video file.
+**Returns** `str` - absolute path to the created video file.
 
 ```python
 from safelicensing.video import create_video_from_frames

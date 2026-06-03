@@ -7,6 +7,8 @@ Detect vehicle license plates with YOLOv8 and encrypt only the sensitive regions
 Built on the research published at IEEE ECCE 2024:
 > *Vehicle Number Plate Detection and Encryption in Digital Images Using YOLOv8 and Chaotic-Based Encryption Scheme* - [View on IEEE Xplore](https://ieeexplore.ieee.org/abstract/document/10534375/)
 
+**Documentation:** [fahimfba.github.io/safelicensing-pypi](https://fahimfba.github.io/safelicensing-pypi/)
+
 ---
 
 ## Features
@@ -25,6 +27,13 @@ Built on the research published at IEEE ECCE 2024:
 
 ```bash
 pip install safelicensing
+```
+
+### From GitHub Packages
+
+```bash
+pip install safelicensing \
+  --index-url https://pypi.pkg.github.com/FahimFBA/
 ```
 
 ### From source
@@ -92,6 +101,8 @@ print(f"Elapsed : {result.elapsed:.2f}s")
 ---
 
 ## API Reference
+
+Full docs at [fahimfba.github.io/safelicensing-pypi](https://fahimfba.github.io/safelicensing-pypi/).
 
 ### High-level
 

@@ -16,7 +16,7 @@ model = sl.load_model()                         # loads bundled best.pt
 image = Image.open("car.jpg")
 result = sl.protect_image(image, seed=0.42, model=model)
 
-result.original.show()                          # original — unmodified
+result.original.show()                          # original, unmodified
 result.detected.show()                          # red bounding boxes
 result.encrypted.save("car_protected.jpg")      # plate regions encrypted
 
@@ -78,7 +78,7 @@ print(f"Elapsed : {result.elapsed:.2f}s")
 safelicensing
 ```
 
-Opens `http://localhost:8501` — upload images or videos, adjust the encryption seed,
+Opens `http://localhost:8501`. Upload images or videos, adjust the encryption seed,
 and download protected output directly from the browser.
 
 ---
@@ -113,6 +113,6 @@ result = sl.protect_image(image, seed=0.5, model=model)
 
 ## Next steps
 
-- [Full API reference — protect_image() →](/docs/api/protect-image)
-- [Full API reference — protect_video() →](/docs/api/protect-video)
-- [Encryption details →](/docs/encryption-details)
+- [protect_image() API reference](/docs/api/protect-image)
+- [protect_video() API reference](/docs/api/protect-video)
+- [Encryption details](/docs/encryption-details)

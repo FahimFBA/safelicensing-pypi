@@ -22,14 +22,14 @@ Parameters used:
 | `r` | 3.9 | Fully chaotic, non-periodic regime |
 | `x_0` | `seed` | Initial value in `(0.0, 1.0)` exclusive |
 
-With `r = 3.9`, the sequence is extremely sensitive to initial conditions — changing
+With `r = 3.9`, the sequence is extremely sensitive to initial conditions. Changing
 `seed` by `1e-10` produces a completely different key stream after a few hundred iterations.
 
 ## Encryption pipeline
 
 For each detected plate region (shape `(H, W, 3)`, dtype `uint8`):
 
-### Step 1 — XOR with chaotic key
+### Step 1: XOR with chaotic key
 
 ```python
 key1 = generate_key(seed, H * W * 3)   # chaotic byte sequence
@@ -39,16 +39,16 @@ region = region ^ key1.reshape(H, W, 3)
 `generate_key` iterates the logistic map `n` times, multiplies each `x_i` by 255,
 and casts to uint8.
 
-### Step 2 — Pixel shuffle
+### Step 2: Pixel shuffle
 
 ```python
 shuffled, indices = shuffle_pixels(region, seed)
 ```
 
 All pixels are permuted using a deterministic, seed-derived permutation. The indices
-are discarded after shuffling — the same seed reconstructs them during decryption.
+are discarded after shuffling; the same seed reconstructs them during decryption.
 
-### Step 3 — XOR with second chaotic key
+### Step 3: XOR with second chaotic key
 
 ```python
 second_seed = min(seed * 1.1, 0.9999)
@@ -56,7 +56,7 @@ key2 = generate_key(second_seed, H * W * 3)
 result = shuffled ^ key2.reshape(H, W, 3)
 ```
 
-A perturbed seed (`min(seed × 1.1, 0.9999)`) generates a second independent key stream.
+A perturbed seed (`min(seed * 1.1, 0.9999)`) generates a second independent key stream.
 The cap at `0.9999` prevents the seed from reaching `1.0`, which is a fixed point of
 the logistic map where all subsequent values collapse to zero.
 
@@ -76,8 +76,8 @@ This makes the scheme **auditable and reproducible** for research.
 
 | Seed | Effect |
 |---|---|
-| Close to 0 or 1 | Avoid — logistic map behavior degenerates near boundaries |
-| 0.1 – 0.9 | Recommended range; all values produce fully chaotic sequences |
+| Close to 0 or 1 | Avoid: logistic map behavior degenerates near boundaries |
+| 0.1 to 0.9 | Recommended range; all values produce fully chaotic sequences |
 | Different per dataset | Change seed between datasets to prevent correlated output |
 
 ## Security note
@@ -108,4 +108,4 @@ shuffled, indices = shuffle_pixels(arr, seed=0.42)
 result = encrypt_image(arr, seed=0.42)
 ```
 
-See the [Low-level API reference →](/docs/api/low-level)
+See the [Low-level API reference](/docs/api/low-level)
