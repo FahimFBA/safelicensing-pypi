@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=61", "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "safelicensing"
@@ -10,7 +10,7 @@ readme = "README.md"
 license = { file = "LICENSE" }
 authors = [
     { name = "Md. Fahim Bin Amin", email = "fahimbinamin@gmail.com" },
-    { name = "Israt Jahan Khan" },
+    { name = "Israt Jahan Khan", email = "isratjahankhanijk@gmail.com" },
 ]
 keywords = [
     "license-plate",
