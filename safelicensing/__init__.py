@@ -50,7 +50,7 @@ from safelicensing.encryption import (
     shuffle_pixels,
 )
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __author__ = "Md. Fahim Bin Amin, Israt Jahan Khan"
 __license__ = "Apache-2.0"
 
