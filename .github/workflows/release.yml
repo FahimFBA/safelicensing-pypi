@@ -48,20 +48,29 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # ── Sync version string in pyproject.toml and __init__.py ─────────────
-      - name: Update version in source files
+      # ── Sync version in all source and docs files ─────────────────────────
+      - name: Update version in source and docs files
         if: steps.tag_check.outputs.skip == 'false'
         run: |
           V="${{ steps.version.outputs.version }}"
+
+          # Python package files
           sed -i "s/^version = .*/version = \"$V\"/" pyproject.toml
           sed -i "s/__version__ = .*/__version__ = \"$V\"/" safelicensing/__init__.py
+
+          # Docs announcement bar in docusaurus.config.ts
+          sed -i "s/SafeLicensing v[0-9][0-9.]*/SafeLicensing v$V/g" website/docusaurus.config.ts
+
+          # Hero version badge in homepage
+          sed -i "s/heroBadge}>v[0-9][0-9.]*/heroBadge}>v$V/" website/src/pages/index.tsx
 
       - name: Commit and push version bump
         if: steps.tag_check.outputs.skip == 'false'
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add pyproject.toml safelicensing/__init__.py
+          git add pyproject.toml safelicensing/__init__.py \
+                  website/docusaurus.config.ts website/src/pages/index.tsx
           git diff --staged --quiet \
             || git commit -m "chore: bump version to ${{ steps.version.outputs.version }} [skip ci]"
           git push
@@ -90,8 +99,7 @@ jobs:
           pip install twine
           twine upload \
             --repository-url https://upload.pypi.pkg.github.com/FahimFBA/ \
-            --skip-existing \
-            dist/*
+            dist/* || true
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
