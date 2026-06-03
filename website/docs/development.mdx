@@ -1,0 +1,126 @@
+---
+id: development
+title: Development
+---
+
+# Development
+
+## Setup
+
+```bash
+git clone https://github.com/FahimFBA/safelicensing-pypi.git
+cd safelicensing-pypi
+
+python -m venv .venv
+source .venv/bin/activate      # Windows: .venv\Scripts\Activate.ps1
+
+pip install -r requirements-dev.txt
+pip install -e .
+```
+
+`requirements-dev.txt` installs all runtime dependencies plus `pytest` and `pytest-cov`.
+
+## Running tests
+
+```bash
+# Unit tests only (no model files or disk I/O needed)
+pytest
+
+# Include integration tests (requires real files and best.pt)
+pytest -m integration
+
+# With coverage report
+pytest --cov=safelicensing
+
+# Verbose output
+pytest -v --tb=short
+```
+
+### Test structure
+
+```
+tests/
+  conftest.py           # fixtures: tiny_rgb_array, tiny_pil_image, valid_seed
+  test_encryption.py    # ~30 tests for logistic_map, generate_key, shuffle_pixels, encrypt_image
+  test_detection.py     # mock-based tests + @pytest.mark.integration for real model
+  test_video.py         # process_video, create_video_from_frames
+```
+
+Integration tests are marked `@pytest.mark.integration` and may require:
+- The bundled `best.pt` model weights
+- OpenCV-writable temporary disk space
+
+## Building the package
+
+```bash
+pip install build
+python -m build
+```
+
+Output goes to `dist/`. Upload to PyPI:
+
+```bash
+pip install twine
+twine upload dist/*
+```
+
+## Publishing via GitHub Actions
+
+On every new GitHub release (status: published), `.github/workflows/publish.yml`
+automatically:
+
+1. Checks out the repo with `GITHUB_TOKEN`
+2. Builds the package with `python -m build`
+3. Publishes to PyPI using **Trusted Publishing** (no API token needed)
+
+To set up Trusted Publishing on PyPI:
+1. Go to [pypi.org](https://pypi.org) → Manage project → Publishing
+2. Add a new trusted publisher with your GitHub org, repo, and workflow file name
+3. Create a `pypi` environment in your GitHub repo Settings → Environments
+
+## Building the docs site
+
+```bash
+cd website
+npm install
+npm start          # dev server at http://localhost:3000
+npm run build      # production build
+npm run serve      # preview production build locally
+```
+
+Deploy to GitHub Pages:
+
+```bash
+npm run deploy
+```
+
+Or automatically via GitHub Actions on every push to `main` that changes `website/`.
+
+## Project structure
+
+```
+safelicensing/
+  __init__.py         # public API: protect_image, protect_video, dataclasses
+  detection.py        # load_model, detect_license_plates
+  encryption.py       # logistic_map, generate_key, shuffle_pixels, encrypt_image
+  video.py            # process_video, create_video_from_frames
+  cli.py              # safelicensing entry point (launches Streamlit)
+  app.py              # Streamlit UI
+  best.pt             # bundled YOLOv8 weights (6 MB)
+tests/
+  conftest.py
+  test_encryption.py
+  test_detection.py
+  test_video.py
+website/              # this Docusaurus docs site
+.github/workflows/
+  publish.yml         # PyPI release on GitHub release
+  docs.yml            # Docs deploy to GitHub Pages on push to main
+```
+
+## Code guidelines
+
+- No leading underscores on function or variable names (except dunder methods)
+- Every public function: `:param` / `:return` docstrings
+- Tests: `pytest` with `unittest.mock` for model-dependent code
+- Security: validate at system boundaries (user input, file paths); trust internal guarantees

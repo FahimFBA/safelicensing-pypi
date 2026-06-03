@@ -1,0 +1,262 @@
+---
+id: low-level
+title: Low-level API
+---
+
+# Low-level API
+
+SafeLicensing exposes all internal building blocks for research use.
+
+## Import paths
+
+```python
+# Encryption primitives
+from safelicensing.encryption import logistic_map, generate_key, shuffle_pixels, encrypt_image
+
+# Detection primitives
+from safelicensing.detection import load_model, detect_license_plates
+
+# Video primitives
+from safelicensing.video import process_video, create_video_from_frames
+```
+
+All public symbols are also re-exported from the top-level package:
+
+```python
+import safelicensing as sl
+
+sl.logistic_map(r=3.9, x=0.42)
+sl.generate_key(seed=0.42, n=256)
+sl.detect_license_plates(model, pil_image)
+```
+
+---
+
+## Encryption
+
+### `logistic_map(r, x)`
+
+Single iteration of the logistic map.
+
+```python
+logistic_map(r: float, x: float) -> float
+```
+
+| Parameter | Type | Description |
+|---|---|---|
+| `r` | `float` | Growth rate. Use `3.9` for chaotic behaviour. |
+| `x` | `float` | Current value in `(0.0, 1.0)`. |
+
+**Returns** `float` — next value `r * x * (1 - x)`.
+
+```python
+from safelicensing.encryption import logistic_map
+
+x = 0.42
+for _ in range(10):
+    x = logistic_map(3.9, x)
+    print(f"{x:.6f}")
+```
+
+---
+
+### `generate_key(seed, n)`
+
+Generate a chaotic byte key of length `n`.
+
+```python
+generate_key(seed: float, n: int) -> np.ndarray
+```
+
+| Parameter | Type | Description |
+|---|---|---|
+| `seed` | `float` | Initial value in `(0.0, 1.0)` exclusive. |
+| `n` | `int` | Number of bytes to generate. |
+
+**Returns** `np.ndarray` — shape `(n,)`, dtype `uint8`.
+
+```python
+from safelicensing.encryption import generate_key
+
+key = generate_key(seed=0.42, n=1024)
+print(key.shape)   # (1024,)
+print(key.dtype)   # uint8
+```
+
+**Raises** `ValueError` if `seed` is not in `(0.0, 1.0)`.
+
+---
+
+### `shuffle_pixels(img_array, seed)`
+
+Deterministically permute all pixels of a 3D image array.
+
+```python
+shuffle_pixels(img_array: np.ndarray, seed: float) -> tuple[np.ndarray, np.ndarray]
+```
+
+| Parameter | Type | Description |
+|---|---|---|
+| `img_array` | `np.ndarray` | Shape `(H, W, C)`, dtype `uint8`. |
+| `seed` | `float` | Permutation seed in `(0.0, 1.0)`. |
+
+**Returns** `(shuffled, indices)` — both `np.ndarray`.
+- `shuffled`: pixels rearranged by the chaotic permutation, shape `(H, W, C)`
+- `indices`: the permutation indices used, shape `(H*W,)` — can be used to reconstruct the original order
+
+```python
+from safelicensing.encryption import shuffle_pixels
+import numpy as np
+
+arr = np.random.randint(0, 255, (64, 64, 3), dtype=np.uint8)
+shuffled, indices = shuffle_pixels(arr, seed=0.42)
+print(shuffled.shape)   # (64, 64, 3)
+```
+
+**Raises** `ValueError` if `seed` out of range; `ValueError` if input not 3D uint8.
+
+---
+
+### `encrypt_image(img_array, seed)`
+
+Full dual-pass chaotic encryption on a region.
+
+```python
+encrypt_image(img_array: np.ndarray, seed: float) -> np.ndarray
+```
+
+| Parameter | Type | Description |
+|---|---|---|
+| `img_array` | `np.ndarray` | Shape `(H, W, 3)`, dtype `uint8`. |
+| `seed` | `float` | Encryption seed in `(0.0, 1.0)` exclusive. |
+
+**Returns** `np.ndarray` — encrypted array, same shape and dtype.
+
+Pipeline: XOR(key1) → shuffle → XOR(key2 from `min(seed*1.1, 0.9999)`)
+
+```python
+from safelicensing.encryption import encrypt_image
+import numpy as np
+
+region = np.random.randint(0, 255, (50, 120, 3), dtype=np.uint8)
+encrypted = encrypt_image(region, seed=0.42)
+
+# Deterministic
+enc2 = encrypt_image(region, seed=0.42)
+assert np.array_equal(encrypted, enc2)   # True
+```
+
+**Raises** `ValueError` if `seed` out of range; `ValueError` if input not shape `(H, W, 3)` uint8.
+
+---
+
+## Detection
+
+### `detect_license_plates(model, pil_image)`
+
+Run the YOLO model on a PIL image and return annotated image plus bounding boxes.
+
+```python
+detect_license_plates(
+    model,
+    pil_image: PIL.Image.Image,
+) -> tuple[PIL.Image.Image, list[tuple[int, int, int, int]]]
+```
+
+| Parameter | Type | Description |
+|---|---|---|
+| `model` | YOLO | A loaded `ultralytics.YOLO` model instance. |
+| `pil_image` | `PIL.Image.Image` | Input image in RGB mode. |
+
+**Returns** `(annotated, bboxes)`:
+- `annotated`: copy of input with red bounding boxes drawn
+- `bboxes`: list of `(x1, y1, x2, y2)` integer tuples, one per detected plate
+
+```python
+from safelicensing.detection import load_model, detect_license_plates
+from PIL import Image
+
+model = load_model()
+image = Image.open("car.jpg")
+
+annotated, bboxes = detect_license_plates(model, image)
+print(f"Detected {len(bboxes)} plates: {bboxes}")
+```
+
+The input `pil_image` is **never mutated** — `annotated` is always a new copy.
+
+---
+
+## Video
+
+### `process_video(video_path, model, key_seed, progress_callback)`
+
+Read a video file, detect and encrypt license plates on every frame.
+
+```python
+process_video(
+    video_path: str,
+    model,
+    key_seed: float,
+    progress_callback: Callable[[float], None] | None = None,
+) -> tuple[list[np.ndarray], float, tuple[int, int]]
+```
+
+| Parameter | Type | Description |
+|---|---|---|
+| `video_path` | `str` | Path to input video file. |
+| `model` | YOLO | Loaded model instance. |
+| `key_seed` | `float` | Encryption seed in `(0.0, 1.0)`. |
+| `progress_callback` | `callable \| None` | Called with `float` in `[0, 1]` after each frame. |
+
+**Returns** `(frames, fps, (width, height))`:
+- `frames`: list of RGB `np.ndarray` frames, each shape `(H, W, 3)` dtype `uint8`
+- `fps`: original video frame rate
+- `(width, height)`: frame dimensions
+
+```python
+from safelicensing.detection import load_model
+from safelicensing.video import process_video, create_video_from_frames
+
+model = load_model()
+frames, fps, size = process_video("dashcam.mp4", model, key_seed=0.42)
+print(f"Processed {len(frames)} frames at {fps} FPS, size {size}")
+```
+
+---
+
+### `create_video_from_frames(frames, fps, output_path, audio_path)`
+
+Encode a list of RGB frames into a video file with optional audio.
+
+```python
+create_video_from_frames(
+    frames: list[np.ndarray],
+    fps: float,
+    output_path: str,
+    audio_path: str | None = None,
+) -> str
+```
+
+| Parameter | Type | Description |
+|---|---|---|
+| `frames` | `list[np.ndarray]` | RGB frames, each `(H, W, 3)` uint8. |
+| `fps` | `float` | Output frame rate. Must be > 0. |
+| `output_path` | `str` | Destination file path (`.mp4` recommended). |
+| `audio_path` | `str \| None` | Source file to extract audio from. Original video path. |
+
+**Returns** `str` — absolute path to the created video file.
+
+```python
+from safelicensing.video import create_video_from_frames
+
+output = create_video_from_frames(
+    frames,
+    fps=30.0,
+    output_path="output.mp4",
+    audio_path="original.mp4",   # reattach original audio
+)
+print(output)   # /abs/path/to/output.mp4
+```
+
+**Raises** `ValueError` if `frames` is empty or `fps <= 0`.

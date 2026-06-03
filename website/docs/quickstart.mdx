@@ -1,0 +1,118 @@
+---
+id: quickstart
+title: Quick Start
+---
+
+# Quick Start
+
+## Protect an image
+
+```python
+import safelicensing as sl
+from PIL import Image
+
+model = sl.load_model()                         # loads bundled best.pt
+
+image = Image.open("car.jpg")
+result = sl.protect_image(image, seed=0.42, model=model)
+
+result.original.show()                          # original — unmodified
+result.detected.show()                          # red bounding boxes
+result.encrypted.save("car_protected.jpg")      # plate regions encrypted
+
+print(f"Plates found : {len(result.bboxes)}")
+print(f"Elapsed      : {result.elapsed:.2f}s")
+```
+
+### What protect_image returns
+
+`protect_image` returns a `ProtectImageResult` dataclass:
+
+| Field | Type | Description |
+|---|---|---|
+| `original` | `PIL.Image` | Unmodified RGB input |
+| `detected` | `PIL.Image` | Input with red bounding boxes |
+| `encrypted` | `PIL.Image` | Full image with plate regions encrypted |
+| `bboxes` | `list[tuple]` | `(x1, y1, x2, y2)` per detected plate |
+| `elapsed` | `float` | Wall-clock processing time (seconds) |
+
+---
+
+## Protect a video
+
+```python
+import safelicensing as sl
+
+model = sl.load_model()
+
+result = sl.protect_video(
+    "dashcam.mp4",
+    seed=0.42,
+    model=model,
+    output_path="dashcam_protected.mp4",
+    progress_callback=lambda p: print(f"\r{p:.0%}", end=""),
+)
+
+print(f"\nOutput  : {result.output_path}")
+print(f"Frames  : {result.frame_count}")
+print(f"FPS     : {result.fps:.2f}")
+print(f"Elapsed : {result.elapsed:.2f}s")
+```
+
+### What protect_video returns
+
+`protect_video` returns a `ProtectVideoResult` dataclass:
+
+| Field | Type | Description |
+|---|---|---|
+| `output_path` | `str` | Absolute path to the encrypted video |
+| `frame_count` | `int` | Total frames processed |
+| `fps` | `float` | Output frame rate |
+| `elapsed` | `float` | Wall-clock processing time (seconds) |
+
+---
+
+## Launch the Streamlit UI
+
+```bash
+safelicensing
+```
+
+Opens `http://localhost:8501` — upload images or videos, adjust the encryption seed,
+and download protected output directly from the browser.
+
+---
+
+## Batch processing
+
+```python
+import safelicensing as sl
+from pathlib import Path
+from PIL import Image
+
+model = sl.load_model()   # load once, reuse across all images
+
+for path in Path("images/").glob("*.jpg"):
+    result = sl.protect_image(Image.open(path), seed=0.5, model=model)
+    result.encrypted.save(f"output/{path.stem}_protected.jpg")
+    print(f"{path.name}: {len(result.bboxes)} plates, {result.elapsed:.2f}s")
+```
+
+---
+
+## Custom model
+
+Bring your own YOLOv8 weights trained for license plate detection:
+
+```python
+model = sl.load_model("path/to/my_model.pt")
+result = sl.protect_image(image, seed=0.5, model=model)
+```
+
+---
+
+## Next steps
+
+- [Full API reference — protect_image() →](/docs/api/protect-image)
+- [Full API reference — protect_video() →](/docs/api/protect-video)
+- [Encryption details →](/docs/encryption-details)

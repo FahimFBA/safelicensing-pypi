@@ -1,0 +1,85 @@
+---
+id: load-model
+title: load_model()
+---
+
+# `load_model()`
+
+Load a YOLOv8 model for license plate detection.
+
+## Signature
+
+```python
+safelicensing.load_model(weights_path: str | None = None) -> YOLO
+```
+
+## Parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `weights_path` | `str \| None` | `None` | Path to a YOLOv8 `.pt` weights file. When `None`, the bundled `best.pt` is used. |
+
+## Returns
+
+A loaded `ultralytics.YOLO` model instance ready for inference.
+
+## Examples
+
+### Bundled model (recommended)
+
+```python
+import safelicensing as sl
+
+model = sl.load_model()   # loads best.pt from the installed package
+```
+
+### Custom weights
+
+```python
+model = sl.load_model("path/to/my_license_plate_model.pt")
+```
+
+### Reuse across many calls
+
+```python
+model = sl.load_model()   # load once
+
+for image in images:
+    result = sl.protect_image(image, model=model)
+```
+
+Always load the model once and pass it to `protect_image()` / `protect_video()` via
+the `model` parameter. Loading the model on every call wastes several seconds per call.
+
+## Bundled model
+
+The bundled `best.pt` is a YOLOv8 model fine-tuned for vehicle license plate detection.
+It ships inside the installed package at:
+
+```python
+import safelicensing
+import os
+model_path = os.path.join(os.path.dirname(safelicensing.__file__), "best.pt")
+```
+
+Size: ~6 MB. Works offline immediately after `pip install safelicensing`.
+
+## Caching in Streamlit
+
+When using SafeLicensing in a Streamlit app, wrap `load_model` with
+`@st.cache_resource` to avoid reloading on every re-run:
+
+```python
+import streamlit as st
+import safelicensing as sl
+
+@st.cache_resource
+def get_model():
+    return sl.load_model()
+
+model = get_model()
+```
+
+---
+
+See also: [protect_image() →](/docs/api/protect-image) | [protect_video() →](/docs/api/protect-video)

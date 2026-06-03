@@ -1,0 +1,8 @@
+{
+  "label": "API Reference",
+  "position": 5,
+  "link": {
+    "type": "generated-index",
+    "description": "Complete API reference for SafeLicensing. Includes high-level one-call functions for image and video protection, and low-level research building blocks."
+  }
+}

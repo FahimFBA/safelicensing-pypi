@@ -1,0 +1,114 @@
+---
+id: installation
+title: Installation
+---
+
+# Installation
+
+## Requirements
+
+| Requirement | Minimum |
+|---|---|
+| Python | 3.8 |
+| pip | 21+ |
+| OS | Windows, macOS, Linux |
+| Disk space | ~650 MB (PyTorch + ultralytics) |
+
+## From PyPI
+
+```bash
+pip install safelicensing
+```
+
+This installs the package and all runtime dependencies:
+
+| Dependency | Purpose |
+|---|---|
+| `streamlit` | Web UI |
+| `opencv-python-headless` | Video reading and writing |
+| `ultralytics` | YOLOv8 model runtime |
+| `moviepy<2.0.0` | Audio extraction and muxing |
+| `imageio-ffmpeg` | FFmpeg bindings |
+| `numpy` | Array operations |
+| `pillow` | Image I/O |
+| `requests` | HTTP utilities |
+
+## Verify the installation
+
+```python
+import safelicensing as sl
+print(sl.__version__)   # 1.0.1
+```
+
+Or from the terminal:
+
+```bash
+safelicensing --help
+```
+
+## From source
+
+```bash
+git clone https://github.com/FahimFBA/safelicensing-pypi.git
+cd safelicensing-pypi
+pip install -r requirements.txt
+pip install -e .
+```
+
+### Development setup
+
+For running tests and contributing:
+
+```bash
+pip install -r requirements-dev.txt
+pip install -e .
+pytest
+```
+
+## Virtual environment (recommended)
+
+```bash
+python -m venv .venv
+
+# Linux / macOS
+source .venv/bin/activate
+
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+
+pip install safelicensing
+```
+
+## Specific version
+
+```bash
+pip install safelicensing==1.0.1
+```
+
+## Troubleshooting
+
+**`No module named 'cv2'`**
+OpenCV was not installed. Run:
+```bash
+pip install opencv-python-headless
+```
+
+**`No module named 'ultralytics'`**
+```bash
+pip install ultralytics
+```
+
+**`safelicensing: command not found`**
+Ensure your Python `Scripts/` (Windows) or `bin/` (Unix) directory is on `PATH`,
+or run directly:
+```bash
+python -m safelicensing.cli
+```
+
+**Slow first run**
+The bundled `best.pt` is loaded from the package directory. This takes a few seconds
+on first call per process; subsequent calls in the same process reuse the cached model.
+
+---
+
+Next: [Quick Start →](/docs/quickstart)

@@ -1,0 +1,122 @@
+/* SafeLicensing docs — custom theme */
+
+:root {
+  --ifm-color-primary: #0369a1;
+  --ifm-color-primary-dark: #025d90;
+  --ifm-color-primary-darker: #025888;
+  --ifm-color-primary-darkest: #014970;
+  --ifm-color-primary-light: #0475b4;
+  --ifm-color-primary-lighter: #0480c2;
+  --ifm-color-primary-lightest: #0693dd;
+  --ifm-code-font-size: 93%;
+  --docusaurus-highlighted-code-line-bg: rgba(3, 105, 161, 0.1);
+  --ifm-navbar-height: 60px;
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #38bdf8;
+  --ifm-color-primary-dark: #22b0f6;
+  --ifm-color-primary-darker: #15a8f5;
+  --ifm-color-primary-darkest: #0392d9;
+  --ifm-color-primary-light: #4ec9f9;
+  --ifm-color-primary-lighter: #64d2f9;
+  --ifm-color-primary-lightest: #93e2fb;
+  --ifm-background-color: #0b1120;
+  --ifm-background-surface-color: #111827;
+  --docusaurus-highlighted-code-line-bg: rgba(56, 189, 248, 0.12);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Code blocks */
+.theme-code-block {
+  border-radius: 10px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='dark'] .theme-code-block {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Tables */
+table {
+  display: table;
+  width: 100%;
+}
+
+table th {
+  white-space: nowrap;
+  background: var(--ifm-background-surface-color);
+}
+
+/* Admonitions */
+.alert {
+  border-radius: 8px;
+  border-left-width: 4px;
+}
+
+/* Navbar — always on top, never hidden */
+.navbar {
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  box-shadow: none;
+  position: sticky !important;
+  top: 0;
+  z-index: var(--ifm-z-index-fixed) !important;
+}
+
+[data-theme='dark'] .navbar {
+  background: rgba(11, 17, 32, 0.95) !important;
+}
+
+/* Navbar sidebar (mobile drawer) must also stay on top */
+.navbar-sidebar {
+  z-index: calc(var(--ifm-z-index-fixed) + 1) !important;
+}
+
+.navbar-sidebar__backdrop {
+  z-index: var(--ifm-z-index-fixed) !important;
+}
+
+/* Sidebar category label */
+.menu__list-item-collapsible:not(:hover) > .menu__link:not(.menu__link--active) {
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.menu__link--active {
+  font-weight: 600;
+}
+
+/* Announcement bar */
+div[class*='announcementBar'] {
+  font-size: 0.875rem;
+  padding: 6px 0;
+}
+
+/* Footer */
+.footer__title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Pagination nav */
+.pagination-nav__link {
+  border-radius: 10px;
+  transition: border-color 0.2s ease;
+}
+
+/* Heading anchors */
+.hash-link {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+h2:hover .hash-link,
+h3:hover .hash-link {
+  opacity: 1;
+}

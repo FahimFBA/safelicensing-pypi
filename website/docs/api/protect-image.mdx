@@ -1,0 +1,115 @@
+---
+id: protect-image
+title: protect_image()
+---
+
+# `protect_image()`
+
+Detect and encrypt all license plates found in a PIL image.
+
+## Signature
+
+```python
+safelicensing.protect_image(
+    image: PIL.Image.Image,
+    seed: float = 0.5,
+    model = None,
+    model_path: str | None = None,
+) -> ProtectImageResult
+```
+
+## Parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `image` | `PIL.Image.Image` | required | Input image. Any colour mode accepted; converted to RGB internally. |
+| `seed` | `float` | `0.5` | Chaotic encryption seed in `(0.0, 1.0)` exclusive. Same seed on same image always produces same encrypted output. |
+| `model` | YOLO instance | `None` | Pre-loaded YOLO model. Loads bundled `best.pt` when `None`. |
+| `model_path` | `str` | `None` | Path to custom YOLOv8 `.pt` weights. Ignored when `model` is given. |
+
+## Returns — `ProtectImageResult`
+
+| Field | Type | Description |
+|---|---|---|
+| `original` | `PIL.Image` | Unmodified RGB input |
+| `detected` | `PIL.Image` | Copy of input with red bounding boxes drawn around detected plates |
+| `encrypted` | `PIL.Image` | Full image with every detected plate region encrypted |
+| `bboxes` | `list[tuple[int, int, int, int]]` | `(x1, y1, x2, y2)` bounding box per detected plate |
+| `elapsed` | `float` | Wall-clock processing time in seconds |
+
+## Raises
+
+| Exception | Condition |
+|---|---|
+| `TypeError` | `image` is not a `PIL.Image.Image` instance |
+| `ValueError` | `seed` is not strictly inside `(0.0, 1.0)` |
+
+## Examples
+
+### Basic usage
+
+```python
+import safelicensing as sl
+from PIL import Image
+
+model = sl.load_model()
+result = sl.protect_image(Image.open("car.jpg"), seed=0.42, model=model)
+
+result.encrypted.save("car_protected.jpg")
+print(result.bboxes)    # [(x1, y1, x2, y2), ...]
+print(result.elapsed)   # 0.35
+```
+
+### Load model once, process many images
+
+```python
+import safelicensing as sl
+from pathlib import Path
+from PIL import Image
+
+model = sl.load_model()
+
+for path in Path("dataset/").glob("*.jpg"):
+    result = sl.protect_image(Image.open(path), seed=0.5, model=model)
+    result.encrypted.save(f"output/{path.name}")
+```
+
+### Custom model path
+
+```python
+model = sl.load_model("my_custom_weights.pt")
+result = sl.protect_image(image, seed=0.3, model=model)
+```
+
+### Access all output fields
+
+```python
+result = sl.protect_image(image, seed=0.7)
+
+print(f"Plates detected : {len(result.bboxes)}")
+print(f"Bounding boxes  : {result.bboxes}")
+print(f"Elapsed         : {result.elapsed:.3f}s")
+
+result.original.save("original.jpg")
+result.detected.save("detected.jpg")   # red boxes
+result.encrypted.save("encrypted.jpg")
+```
+
+### Validate the encryption seed
+
+```python
+try:
+    result = sl.protect_image(image, seed=1.0)   # raises ValueError
+except ValueError as e:
+    print(e)  # seed must be in (0.0, 1.0) exclusive, got 1.0
+```
+
+## Notes
+
+- The `original` image is never mutated — all outputs are independent copies.
+- When no plates are detected, `encrypted` is identical to `original` and `bboxes` is empty.
+- The `elapsed` timer starts after model loading — it measures detection + encryption only.
+
+---
+
+See also: [protect_video() →](/docs/api/protect-video) | [load_model() →](/docs/api/load-model)

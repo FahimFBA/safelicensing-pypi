@@ -1,0 +1,80 @@
+---
+id: cli
+title: CLI Usage
+---
+
+# CLI Usage
+
+## Launch the Streamlit app
+
+```bash
+safelicensing
+```
+
+Opens a browser-based UI at `http://localhost:8501`.
+
+## What the UI provides
+
+| Tab | Description |
+|---|---|
+| Image | Upload JPEG/PNG, tune seed, view original / detected / encrypted, download result |
+| Video | Upload MP4/AVI/MOV, track per-frame progress, download encrypted video |
+
+Additional controls:
+- **Seed slider** — tune the chaotic encryption seed from 0.01 to 0.99
+- **Bundled model** — `best.pt` loads automatically, no setup required
+
+## Custom Streamlit arguments
+
+All arguments after `safelicensing` are passed through to Streamlit:
+
+```bash
+# Custom port
+safelicensing --server.port 8502
+
+# No browser auto-open (for headless servers)
+safelicensing --server.headless true
+
+# Force dark theme
+safelicensing --theme.base dark
+
+# Custom address + port
+safelicensing --server.address 0.0.0.0 --server.port 8080
+```
+
+## Run without the entry point
+
+Locate the `app.py` bundled with the installed package:
+
+```python
+import safelicensing
+import os
+
+app_path = os.path.join(os.path.dirname(safelicensing.__file__), "app.py")
+print(app_path)
+```
+
+Then run it directly:
+
+```bash
+python -m streamlit run /path/to/safelicensing/app.py
+```
+
+## Deployment (server / Docker)
+
+```bash
+pip install safelicensing
+safelicensing --server.headless true --server.port 8080 --server.address 0.0.0.0
+```
+
+For persistent operation, wrap in `systemd`, `pm2`, or a Docker container.
+
+Example `Dockerfile`:
+
+```dockerfile
+FROM python:3.11-slim
+RUN pip install safelicensing
+EXPOSE 8080
+CMD ["safelicensing", "--server.headless", "true", \
+     "--server.port", "8080", "--server.address", "0.0.0.0"]
+```

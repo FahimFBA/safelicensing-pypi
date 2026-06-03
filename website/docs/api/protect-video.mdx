@@ -1,0 +1,113 @@
+---
+id: protect-video
+title: protect_video()
+---
+
+# `protect_video()`
+
+Detect and encrypt license plates across all frames of a video file.
+
+## Signature
+
+```python
+safelicensing.protect_video(
+    video_path: str,
+    seed: float = 0.5,
+    output_path: str | None = None,
+    model = None,
+    model_path: str | None = None,
+    progress_callback: Callable[[float], None] | None = None,
+) -> ProtectVideoResult
+```
+
+## Parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `video_path` | `str` | required | Path to the input video file. Supported formats: mp4, avi, mov (OpenCV-readable). |
+| `seed` | `float` | `0.5` | Chaotic encryption seed in `(0.0, 1.0)` exclusive. |
+| `output_path` | `str` | `None` | Destination path for the encrypted video. When `None`, the file is written as `<stem>_encrypted.mp4` in the same directory as the source. |
+| `model` | YOLO instance | `None` | Pre-loaded YOLO model. Loads bundled `best.pt` when `None`. |
+| `model_path` | `str` | `None` | Path to custom YOLOv8 `.pt` weights. Ignored when `model` is given. |
+| `progress_callback` | `callable` | `None` | Optional callable receiving a `float` in `[0.0, 1.0]` after each processed frame. |
+
+## Returns — `ProtectVideoResult`
+
+| Field | Type | Description |
+|---|---|---|
+| `output_path` | `str` | Absolute path to the encrypted output video file |
+| `frame_count` | `int` | Total number of frames processed |
+| `fps` | `float` | Frame rate of the output video |
+| `elapsed` | `float` | Wall-clock processing time in seconds |
+
+## Raises
+
+| Exception | Condition |
+|---|---|
+| `FileNotFoundError` | `video_path` does not exist |
+| `ValueError` | `seed` is not strictly inside `(0.0, 1.0)` |
+
+## Examples
+
+### Basic usage
+
+```python
+import safelicensing as sl
+
+model = sl.load_model()
+result = sl.protect_video("dashcam.mp4", seed=0.42, model=model)
+
+print(result.output_path)    # /abs/path/to/dashcam_encrypted.mp4
+print(result.frame_count)    # 1800
+print(result.fps)            # 30.0
+print(result.elapsed)        # 94.3
+```
+
+### Custom output path
+
+```python
+result = sl.protect_video(
+    "footage/recording.mp4",
+    seed=0.5,
+    output_path="protected/recording_safe.mp4",
+    model=model,
+)
+```
+
+### Progress tracking
+
+```python
+from tqdm import tqdm
+
+with tqdm(total=100, desc="Encrypting") as bar:
+    prev = 0.0
+
+    def on_progress(p: float):
+        nonlocal prev
+        delta = int(p * 100) - int(prev * 100)
+        bar.update(delta)
+        prev = p
+
+    result = sl.protect_video("dashcam.mp4", seed=0.5, progress_callback=on_progress)
+```
+
+### Simple console progress
+
+```python
+result = sl.protect_video(
+    "dashcam.mp4",
+    seed=0.42,
+    progress_callback=lambda p: print(f"\r{p:.0%}", end="", flush=True),
+)
+print()   # newline after progress
+```
+
+## Notes
+
+- The original audio track is preserved in the output video.
+- Output is always encoded as MP4 (H.264 via OpenCV / FFmpeg).
+- Large videos may require significant RAM — all frames are processed in memory.
+
+---
+
+See also: [protect_image() →](/docs/api/protect-image) | [Low-level video API →](/docs/api/low-level)

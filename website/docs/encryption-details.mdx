@@ -1,0 +1,111 @@
+---
+id: encryption-details
+title: Encryption Details
+---
+
+# Encryption Details
+
+SafeLicensing uses a **dual-pass chaotic XOR cipher** on each detected license plate region.
+
+## The logistic map
+
+The logistic map is a classic chaotic dynamical system:
+
+```
+x_{n+1} = r * x_n * (1 - x_n)
+```
+
+Parameters used:
+
+| Parameter | Value | Reason |
+|---|---|---|
+| `r` | 3.9 | Fully chaotic, non-periodic regime |
+| `x_0` | `seed` | Initial value in `(0.0, 1.0)` exclusive |
+
+With `r = 3.9`, the sequence is extremely sensitive to initial conditions — changing
+`seed` by `1e-10` produces a completely different key stream after a few hundred iterations.
+
+## Encryption pipeline
+
+For each detected plate region (shape `(H, W, 3)`, dtype `uint8`):
+
+### Step 1 — XOR with chaotic key
+
+```python
+key1 = generate_key(seed, H * W * 3)   # chaotic byte sequence
+region = region ^ key1.reshape(H, W, 3)
+```
+
+`generate_key` iterates the logistic map `n` times, multiplies each `x_i` by 255,
+and casts to uint8.
+
+### Step 2 — Pixel shuffle
+
+```python
+shuffled, indices = shuffle_pixels(region, seed)
+```
+
+All pixels are permuted using a deterministic, seed-derived permutation. The indices
+are discarded after shuffling — the same seed reconstructs them during decryption.
+
+### Step 3 — XOR with second chaotic key
+
+```python
+second_seed = min(seed * 1.1, 0.9999)
+key2 = generate_key(second_seed, H * W * 3)
+result = shuffled ^ key2.reshape(H, W, 3)
+```
+
+A perturbed seed (`min(seed × 1.1, 0.9999)`) generates a second independent key stream.
+The cap at `0.9999` prevents the seed from reaching `1.0`, which is a fixed point of
+the logistic map where all subsequent values collapse to zero.
+
+## Determinism
+
+Given the same `seed` and region dimensions, encryption is fully deterministic:
+
+```python
+enc1 = encrypt_image(region, seed=0.42)
+enc2 = encrypt_image(region, seed=0.42)
+assert np.array_equal(enc1, enc2)   # always True
+```
+
+This makes the scheme **auditable and reproducible** for research.
+
+## Seed selection
+
+| Seed | Effect |
+|---|---|
+| Close to 0 or 1 | Avoid — logistic map behavior degenerates near boundaries |
+| 0.1 – 0.9 | Recommended range; all values produce fully chaotic sequences |
+| Different per dataset | Change seed between datasets to prevent correlated output |
+
+## Security note
+
+This scheme is designed for **privacy-preserving anonymisation** of license plates
+in research datasets. It is **not** a cryptographic cipher and does not provide provable
+security guarantees against a determined adversary.
+
+For applications requiring strong confidentiality guarantees, use an AES-based approach.
+
+## Low-level API
+
+All primitives are directly accessible for research use:
+
+```python
+from safelicensing.encryption import logistic_map, generate_key, shuffle_pixels, encrypt_image
+
+# Single logistic map step
+x1 = logistic_map(r=3.9, x=0.42)
+
+# Generate a chaotic byte key
+key = generate_key(seed=0.42, n=1024)
+
+# Shuffle pixel positions
+shuffled, indices = shuffle_pixels(arr, seed=0.42)
+
+# Full two-pass encryption
+result = encrypt_image(arr, seed=0.42)
+```
+
+See the [Low-level API reference →](/docs/api/low-level)
