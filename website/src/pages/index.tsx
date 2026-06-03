@@ -72,7 +72,7 @@ function HomepageHero(): ReactNode {
     <header className={styles.heroBanner}>
       <div className={clsx('container', styles.heroContent)}>
         <div className={styles.heroBadges}>
-          <span className={styles.heroBadge}>v1.0.2</span>
+          <span className={styles.heroBadge}>v1.0.3</span>
           <span className={styles.heroBadge}>Apache-2.0</span>
           <span className={styles.heroBadge}>Python 3.8+</span>
           <span className={styles.heroBadge}>IEEE ECCE 2024</span>

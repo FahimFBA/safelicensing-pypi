@@ -52,7 +52,7 @@ const config: Config = {
     announcementBar: {
       id: 'v1_release',
       content:
-        '🎉 <strong>SafeLicensing v1.0.2</strong> is live on PyPI — <a href="https://pypi.org/project/safelicensing/" target="_blank" rel="noopener noreferrer">pip install safelicensing</a>',
+        '🎉 <strong>SafeLicensing v1.0.3</strong> is live on PyPI — <a href="https://pypi.org/project/safelicensing/" target="_blank" rel="noopener noreferrer">pip install safelicensing</a>',
       backgroundColor: '#0c4a6e',
       textColor: '#e0f2fe',
       isCloseable: true,
